@@ -2,9 +2,9 @@ Source: lliurex-ssh-login
 Section: admin
 Priority: optional
 Maintainer: Equipo LliureX <lliurex@gva.es>
-Uploaders: Angel Berlanas Vicente <lliurex_devel2@edu.gva.es>, Raul Rodrigo Segura <lliurex_devel3@edu.gva.es>, Enrique Medina Gremaldos <lliurex_devel4@edu.gva.es>, David Montalva Furio <montalva_dav@gva.es>, Hector Garcia Huerta <lliurex_devel1@edu.gva.es>, Daniel Duran Vecino <daduve@gmail.com>
-Build-Depends: debhelper (>= 7.0)
-Standards-Version: 3.9.5
+Uploaders: Equipo LliureX <lliurex@gva.es>
+Build-Depends: debhelper (>= 10)
+Standards-Version: 4.1.2
 
 Package: lliurex-ssh-login
 Architecture: all
