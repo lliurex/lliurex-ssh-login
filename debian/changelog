@@ -1,3 +1,9 @@
+lliurex-ssh-login (0.38) bionic; urgency=medium
+
+  * Initial release for bionic
+
+ -- Juan Ramon Pelegrina <juapesai@hotmail.com>  Wed, 10 Oct 2018 11:24:44 +0200
+
 lliurex-ssh-login (0.28) xenial; urgency=high
 
   * Removing colors 
