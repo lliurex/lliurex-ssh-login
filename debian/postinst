@@ -1,0 +1,36 @@
+#!/bin/sh
+set -e
+
+
+# Template for diversions
+ORIG1_FILE="/etc/update-motd.d/00-header"
+OUR1_FILE="/etc/update-motd.d/00-header.lliurex"
+ORIG2_FILE="/etc/update-motd.d/10-help-text"
+OUR2_FILE="/etc/update-motd.d/10-help-text.lliurex"
+OUR_PACKAGE="lliurex-ssh-login"
+
+case $1 in 
+
+        configure)
+                if dpkg-divert --package ${OUR_PACKAGE} --add  --rename  --divert ${ORIG1_FILE}.real ${ORIG1_FILE} ; then
+                        ln -fs ${OUR1_FILE} ${ORIG1_FILE}
+                else
+                        echo "Unabe to divert file ${ORIG1_FILE}"
+                fi
+
+		if dpkg-divert --package ${OUR_PACKAGE} --add  --rename  --divert ${ORIG2_FILE}.real ${ORIG2_FILE} ; then
+                        ln -fs ${OUR2_FILE} ${ORIG2_FILE}
+                else
+                        echo "Unabe to divert file ${ORIG2_FILE}"
+                fi
+ 
+                
+                ;;
+        *)
+                echo "Nothing to do"
+                ;; 
+esac
+
+# Other Stuff #
+
+#DEBHELPER#

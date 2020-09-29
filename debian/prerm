@@ -1,0 +1,30 @@
+#!/bin/sh
+set -e
+
+# Template for diversions
+ORIG1_FILE="/etc/update-motd.d/00-header"
+OUR1_FILE="/etc/update-motd.d/00-header.lliurex"
+ORIG2_FILE="/etc/update-motd.d/10-help-text"
+OUR2_FILE="/etc/update-motd.d/10-help-text.lliurex"
+OUR_PACKAGE="lliurex-ssh-login"
+
+case $1 in 
+        remove|purge|abort-install|disappear)
+                if [ -f ${ORIG1_FILE}.real ] ; then
+                        dpkg-divert --package  ${OUR_PACKAGE} --rename --quiet --remove ${ORIG1_FILE}|| true
+                fi
+               
+		if [ -f ${ORIG2_FILE}.real ] ; then
+                        dpkg-divert --package  ${OUR_PACKAGE} --rename --quiet --remove ${ORIG2_FILE}|| true
+                fi
+ 
+                ;;
+        *)
+                echo "Nothing to do"
+                ;; 
+esac
+
+# Other Stuff #
+
+#DEBHELPER#
+

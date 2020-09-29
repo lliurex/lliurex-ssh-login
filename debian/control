@@ -1,0 +1,15 @@
+Source: lliurex-ssh-login
+Section: admin
+Priority: optional
+Maintainer: Equipo LliureX <lliurex@gva.es>
+Uploaders: Equipo LliureX <lliurex@gva.es>
+Build-Depends: debhelper (>= 10)
+Standards-Version: 4.1.2
+
+Package: lliurex-ssh-login
+Architecture: all
+Depends: ${misc:Depends}
+Description: Lliurex SSH LOGIN configured special settings
+ - Show user, hostname, IP address and Lliurex Version in ssh login
+ For LliureX
+
