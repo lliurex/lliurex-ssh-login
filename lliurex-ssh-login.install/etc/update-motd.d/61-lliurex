@@ -7,9 +7,9 @@ export TERM
 #CAL=`cal`
 HORA=`date +%r`
 UPTIME=`uptime`
-IMG=`n4d-client -c LmdImageManager -m getImageList`
-ORD=`n4d-client -c LlxBootManager -m getBootOrder`
-VER=`lliurex-version -n`
+IMG=$(n4d-client -r call LmdImageManager.getImageList 2>/dev/null || true)
+ORD=$(n4d-client -r call LlxBootManager.getBootOrder 2>/dev/null || true)
+VER=$(lliurex-version -n)
 
 ###########################
 ##DETECCION DE MEMORIA#############
@@ -148,7 +148,7 @@ echo "	-VERSION: $VER"
 echo "	-ARQUITECTURA: $ARQ"
 echo "	-CPU: $cpu"
 echo "	-RAM: $mem"
-if [ "$SOY" = "Server" ]; then
+if [ "$SOY" = "Server" -o "$SOY" = "Servidor" ]; then
 	DF=`df -h /net|tail -1|awk '{print $5}'`
 	echo "	-Espacio ocupado en /net: $DF"
 	echo "	-Imagenes LTSP disponibles: $IMG2"
