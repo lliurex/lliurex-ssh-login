@@ -1,3 +1,9 @@
+lliurex-ssh-login (0.60) jammy; urgency=medium
+
+  * Updated n4d calls, fixed some texts and added some extra info
+
+ -- Enrique Medina Gremaldos <quique@necos.es>  Thu, 21 Mar 2024 09:52:35 +0100
+
 lliurex-ssh-login (0.59) jammy; urgency=medium
 
   * Initial release for jammy
