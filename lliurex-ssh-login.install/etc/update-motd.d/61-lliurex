@@ -1,18 +1,14 @@
 #!/bin/bash
+
 LANG=es_ES.UTF-8
 TERM=xterm
 export LANG 
 export TERM
-#VER=`lsb_release -ds`
-#CAL=`cal`
 HORA=`date +%r`
 UPTIME=`uptime`
-IMG=`n4d-client -c LmdImageManager -m getImageList`
-ORD=`n4d-client -c LlxBootManager -m getBootOrder`
 VER=`lliurex-version -n`
+SB_PATH="/sys/firmware/efi/efivars/SecureBoot-8be4df61-93ca-11d2-aa0d-00e098032b8c"
 
-###########################
-##DETECCION DE MEMORIA#############
 detectmem () {
 	hw_mem=0
 	free_mem=0
@@ -41,18 +37,16 @@ detectmem () {
 	totalmem="$(($memtotal / $human))"
 	mem="${usedmem}MiB / ${totalmem}MiB"
 }
-#####FIN DETECCION DE MEMORIA
-
-###############################
-#########DETECCION DE LA CPU#######
 
 detectcpu () {
 	REGEXP="-r"
 	cpu=$(awk 'BEGIN{FS=":"} /model name/ { print $2; exit }' /proc/cpuinfo | sed 's/ @/\n/' | head -1)
 	cpun=$(grep "physical id" /proc/cpuinfo | sort | uniq | wc -l)
+
 	if [ -z "$cpu" ]; then
 		cpu=$(awk 'BEGIN{FS=":"} /Hardware/ { print $2; exit }' /proc/cpuinfo)
 	fi
+
 	if [ -z "$cpu" ]; then
 		cpu=$(awk 'BEGIN{FS=":"} /^cpu/ { gsub(/  +/," ",$2); print $2; exit}' /proc/cpuinfo | sed 's/, altivec supported//;s/^ //')
 		if [[ $cpu =~ ^(PPC)*9.+ ]]; then
@@ -68,7 +62,9 @@ detectcpu () {
 		fi
 		cpu="${model}${cpu}"
 	fi
+
 	loc="/sys/devices/system/cpu/cpu0/cpufreq"
+
 	if [ -f ${loc}/bios_limit ];then
 		cpu_mhz=$(awk '{print $1/1000}' "${loc}/bios_limit")
 	elif [ -f $loc/scaling_max_freq ];then
@@ -76,6 +72,7 @@ detectcpu () {
 	else
 		cpu_mhz=$(awk -F':' '/cpu MHz/{ print int($2+.5) }' /proc/cpuinfo | head -n 1)
 	fi
+
 	if [ -n "$cpu_mhz" ];then
 		if [ $(echo $cpu_mhz | cut -d. -f1) -gt 999 ];then
 			cpu_ghz=$(awk '{print $1/1000}' <<< "${cpu_mhz}")
@@ -84,16 +81,15 @@ detectcpu () {
 			cpu="$cpu @ ${cpu_mhz}MHz"
 		fi
 	fi
-        if [[ "${cpun}" -gt "1" ]]; then
-               	cpu=$(sed $REGEXP 's/\([tT][mM]\)|\([Rr]\)|[pP]rocessor//g' <<< "${cpun}x ${cpu}" | xargs)
-        else
-               	cpu=$(sed $REGEXP 's/\([tT][mM]\)|\([Rr]\)|[pP]rocessor//g' <<< "${cpu}" | xargs)
-        fi
+
+	if [[ "${cpun}" -gt "1" ]]; then
+			cpu=$(sed $REGEXP 's/\([tT][mM]\)|\([Rr]\)|[pP]rocessor//g' <<< "${cpun}x ${cpu}" | xargs)
+	else
+			cpu=$(sed $REGEXP 's/\([tT][mM]\)|\([Rr]\)|[pP]rocessor//g' <<< "${cpu}" | xargs)
+	fi
 }
-############### CPU DETECCION FIN
 
 
-####AVERIGUAMOS EL TIPO DE CLIENTE LLIUREX
 lliurex-version > /tmp/test-mod.txt
 echo $LTSP_FATCLIENT > /tmp/test-mod-fat.txt
 if [ `grep server /tmp/test-mod.txt -c` != 0 ]; then
@@ -116,44 +112,53 @@ else
 	fi
 fi
 
-############################
-#####AVERIGUAMOS LA ARQUITECTURA
-############################
-
 if [ `uname -m | grep "x86_64" -c` == 0 ]; then
 	ARQ="32 Bits"
 else
 	ARQ="64 Bits"
 fi
 
+if [ -e $SB_PATH ]; then
+	BOOT_MODE="UEFI"
+else
+	BOOT_MODE="Legacy"
+fi
 
-############################
-###DATOS DE MAQUINA ORIGEN
-############################
-IMG2=`echo $IMG|sed 's/\[\|\]//g'|sed 's/"//g'|sed 's/,/ /g'|sed 's/.json//g'`
-ORD2=`echo $ORD|sed 's/\[\|\]//g'|sed 's/"//g'|sed 's/,/ /g'|sed "s/'//g"`
-
-#CPU=`cat /proc/cpuinfo | grep 'model name' | cut -c 14-42 | uniq `
-
-#MEM=`grep MemTotal /proc/meminfo | awk '{$1=$2/(1024); print $1,"MB";}'`
-
-####DETECTAMOS LA MEMORIA FISICA Y USADA, ASI COMO LA CPU######
 detectmem
 detectcpu
 
-
 echo 
-echo "	-CLIENTE: $SOY"
-echo "	-VERSION: $VER"
-echo "	-ARQUITECTURA: $ARQ"
-echo "	-CPU: $cpu"
-echo "	-RAM: $mem"
+printf "\t\u2022 Sabor: $SOY\n"
+printf "\t\u2022 Versión: $VER\n"
+printf "\t\u2022 Arquitectura: $ARQ\n"
+printf "\t\u2022 Cpu: $cpu\n"
+printf "\t\u2022 Ram: $mem\n"
+printf "\t\u2022 Arranque: $BOOT_MODE\n"
+
+if [ "$BOOT_MODE" = "UEFI" ]; then
+	SB_STATUS=`od -j4 -tx1 -An $SB_PATH`
+
+	if [ "$SB_STATUS" = "01" ]; then
+		SB_STATUS="Activado"
+	else
+		SB_STATUS="Desactivado"
+	fi
+
+	printf "\t\u2022 Secure Boot: $SB_STATUS\n"
+fi
+
 if [ "$SOY" = "Server" ]; then
+
+	IMG=`n4d-client call LmdImageManager.getImageList`
+	ORD=`n4d-client call LlxBootManager.getBootOrder`
+	IMG2=`echo $IMG|sed 's/\[\|\]//g'|sed 's/"//g'|sed 's/,/ /g'|sed 's/.json//g'`
+	ORD2=`echo $ORD|sed 's/\[\|\]//g'|sed 's/"//g'|sed 's/,/ /g'|sed "s/'//g"`
+
 	DF=`df -h /net|tail -1|awk '{print $5}'`
-	echo "	-Espacio ocupado en /net: $DF"
-	echo "	-Imagenes LTSP disponibles: $IMG2"
-	echo "	-Orden de arranque menu pxe: $ORD2"
+	printf "\t\u2022 Espacio ocupado en /net: $DF\n"
+	printf "\t\u2022 Imágenes LTSP disponibles: $IMG2\n"
+	printf "\t\u2022 Orden de arranque menu pxe: $ORD2\n"
 	echo 
 fi
-echo 
-echo Hora actual: $UPTIME
+
+printf "\t\u2022 Uptime: $UPTIME\n\n"
